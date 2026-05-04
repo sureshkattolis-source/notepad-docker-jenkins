@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NoteVault – Your Smart Notepad</title>
+  <link rel="stylesheet" href="css/style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+
+<!-- ── SIDEBAR ──────────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">
+      <i class="fas fa-vault"></i>
+      <span>NoteVault</span>
+    </div>
+  </div>
+
+  <button class="btn-new" onclick="openModal()">
+    <i class="fas fa-plus"></i> New Note
+  </button>
+
+  <div class="search-box">
+    <i class="fas fa-search"></i>
+    <input type="text" id="searchInput" placeholder="Search notes…" oninput="handleSearch()" />
+  </div>
+
+  <nav class="nav-links">
+    <a href="#" class="nav-item active" onclick="filterNotes('all', this)">
+      <i class="fas fa-th-large"></i> All Notes
+    </a>
+    <a href="#" class="nav-item" onclick="filterNotes('pinned', this)">
+      <i class="fas fa-thumbtack"></i> Pinned
+    </a>
+    <a href="#" class="nav-item" onclick="filterNotes('Work', this)">
+      <i class="fas fa-briefcase"></i> Work
+    </a>
+    <a href="#" class="nav-item" onclick="filterNotes('Personal', this)">
+      <i class="fas fa-user"></i> Personal
+    </a>
+    <a href="#" class="nav-item" onclick="filterNotes('General', this)">
+      <i class="fas fa-tag"></i> General
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <span id="noteCount">0 notes</span>
+  </div>
+</aside>
+
+<!-- ── MAIN ─────────────────────────────────────────────── -->
+<main class="main-content">
+  <header class="top-bar">
+    <h1 id="pageTitle">All Notes</h1>
+    <div class="header-actions">
+      <button class="icon-btn" title="Refresh" onclick="loadNotes()">
+        <i class="fas fa-rotate-right"></i>
+      </button>
+    </div>
+  </header>
+
+  <div class="notes-grid" id="notesGrid">
+    <!-- Cards injected by JS -->
+  </div>
+
+  <div class="empty-state" id="emptyState">
+    <i class="fas fa-note-sticky"></i>
+    <h3>No notes here yet</h3>
+    <p>Click <strong>New Note</strong> to get started!</p>
+  </div>
+</main>
+
+<!-- ── CREATE / EDIT MODAL ──────────────────────────────── -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOnOverlay(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">New Note</h2>
+      <button class="icon-btn close-btn" onclick="closeModal()" title="Close">
+        <i class="fas fa-xmark"></i>
+      </button>
+    </div>
+
+    <input  type="hidden"  id="noteId"/>
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" id="noteTitle" placeholder="Note title…" maxlength="255"/>
+    </div>
+
+    <div class="form-group">
+      <label>Content</label>
+      <textarea id="noteContent" rows="8" placeholder="Write your note here…"></textarea>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group half">
+        <label for="noteCategory">Category</label>
+        <select id="noteCategory" title="Select note category">
+          <option value="General">General</option>
+          <option value="Work">Work</option>
+          <option value="Personal">Personal</option>
+        </select>
+      </div>
+      <div class="form-group half">
+        <label>Card Color</label>
+        <div class="color-picker">
+          <span class="color-dot white-dot" data-color="#ffffff" onclick="pickColor(this)" title="White"></span>
+          <span class="color-dot yellow-dot" data-color="#fef9c3" onclick="pickColor(this)" title="Yellow"></span>
+          <span class="color-dot green-dot" data-color="#dcfce7" onclick="pickColor(this)" title="Green"></span>
+          <span class="color-dot blue-dot" data-color="#dbeafe" onclick="pickColor(this)" title="Blue"></span>
+          <span class="color-dot pink-dot" data-color="#fce7f3" onclick="pickColor(this)" title="Pink"></span>
+          <span class="color-dot purple-dot" data-color="#ede9fe" onclick="pickColor(this)" title="Purple"></span>
+          <span class="color-dot orange-dot" data-color="#ffedd5" onclick="pickColor(this)" title="Orange"></span>
+        </div>
+        <input type="hidden" id="noteColor" value="#ffffff"/>
+      </div>
+    </div>
+
+    <div class="form-group pin-row">
+      <label class="checkbox-label">
+        <input type="checkbox" id="notePinned"/>
+        <span><i class="fas fa-thumbtack"></i> Pin this note</span>
+      </label>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save"   onclick="saveNote()">
+        <i class="fas fa-floppy-disk"></i> Save Note
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── DELETE CONFIRM ────────────────────────────────────── -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <i class="fas fa-triangle-exclamation"></i>
+    <h3>Delete this note?</h3>
+    <p>This action cannot be undone.</p>
+    <div class="confirm-actions">
+      <button onclick="cancelDelete()">Cancel</button>
+      <button class="btn-danger" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST ─────────────────────────────────────────────── -->
+<div class="toast" id="toast"></div>
+
+<script src="js/app.js"></script>
+</body>
+</html>
