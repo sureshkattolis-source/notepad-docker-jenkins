@@ -9,7 +9,7 @@ pipeline {
             steps {
                 echo '📥 Cloning from GitHub...'
                 git branch: 'main',
-                    url: 'https://github.com/sureshkattolis-source/Dockerized-NoteVault-app.git'
+                    url: 'https://github.com/sureshkattolis-source/notepad-docker-jenkins.git'
             }
         }
         stage('Build Docker Images') {
@@ -36,7 +36,7 @@ pipeline {
                 sshagent(['ec2-ssh-key']) {
                     sh '''
                         ssh -o StrictHostKeyChecking=no ubuntu@${EC2_IP} "
-                            cd Dockerized-NoteVault-app &&
+                            cd notepad-docker-jenkins &&
                             git pull &&
                             docker compose down &&
                             docker compose up --build -d
