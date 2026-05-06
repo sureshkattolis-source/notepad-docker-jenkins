@@ -45,11 +45,17 @@ pipeline {
                 sshagent(['ec2-ssh-key']) {
                     sh '''
                     ssh -o StrictHostKeyChecking=no ubuntu@${EC2_IP} "
+                        mkdir -p ~/apps &&
+                        cd ~/apps &&
+
                         if [ ! -d Dockerized-NoteVault-app ]; then
                             git clone https://github.com/sureshkattolis-source/notepad-docker-jenkins.git Dockerized-NoteVault-app
                         fi &&
+
                         cd Dockerized-NoteVault-app &&
-                        git pull &&
+                        git checkout main &&
+                        git pull origin main &&
+
                         docker compose down &&
                         docker compose pull &&
                         docker compose up -d
