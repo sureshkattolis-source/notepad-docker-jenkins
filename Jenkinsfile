@@ -34,7 +34,7 @@ stage('Push to Docker Hub') {
             docker push kattolisuresh/notevault-frontend:latest
         '''
     }
-}
+}}
         stage('Deploy to EC2') {
             steps {
                 echo '🚀 Deploying to AWS EC2...'
