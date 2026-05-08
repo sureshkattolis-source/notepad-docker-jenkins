@@ -23,19 +23,18 @@ pipeline {
             }
         }
 
-        stage('Push to Docker Hub') {
-            steps {
-                echo '📦 Pushing to Docker Hub...'
-                sh '''
-                    echo $DOCKERHUB_CREDS_PSW | docker login -u $DOCKERHUB_CREDS_USR --password-stdin
-                    docker tag dockerized-notevault-app-backend:latest kattolisuresh/notevault-backend:latest
-                    docker tag dockerized-notevault-app-frontend:latest kattolisuresh/notevault-frontend:latest
-                    docker push kattolisuresh/notevault-backend:latest
-                    docker push kattolisuresh/notevault-frontend:latest
-                '''
-            }
-        }
-
+stage('Push to Docker Hub') {
+    steps {
+        echo '📦 Pushing to Docker Hub...'
+        sh '''
+            echo $DOCKERHUB_CREDS_PSW | docker login -u $DOCKERHUB_CREDS_USR --password-stdin
+            docker tag notevault-pipeline-backend:latest kattolisuresh/notevault-backend:latest
+            docker tag notevault-pipeline-frontend:latest kattolisuresh/notevault-frontend:latest
+            docker push kattolisuresh/notevault-backend:latest
+            docker push kattolisuresh/notevault-frontend:latest
+        '''
+    }
+}
         stage('Deploy to EC2') {
             steps {
                 echo '🚀 Deploying to AWS EC2...'
