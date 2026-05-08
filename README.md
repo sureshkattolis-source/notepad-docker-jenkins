@@ -300,13 +300,19 @@ newgrp docker
 # Install Docker Compose
 sudo apt install docker-compose-v2 -y
 
+# Create symlink so docker-compose command works
+sudo ln -s /usr/libexec/docker/cli-plugins/docker-compose /usr/local/bin/docker-compose
+
+# Verify
+docker-compose --version
+
 # Clone and run
 git clone https://github.com/sureshkattolis-source/notepad-docker-jenkins.git
 cd notepad-docker-jenkins
 docker-compose up -d
 ```
 
-### Security Group Rules
+### Security Group Rules (NoteVault EC2)
 
 | Port | Purpose |
 |------|---------|
@@ -327,7 +333,10 @@ ssh -i jenkins-key.pem ubuntu@JENKINS_EC2_PUBLIC_IP
 sudo apt update -y
 sudo apt install fontconfig openjdk-21-jre -y
 
-# Add Jenkins repo
+# Verify Java version
+java -version
+
+# Add Jenkins repo key
 sudo wget -O /etc/apt/keyrings/jenkins-keyring.asc \
   https://pkg.jenkins.io/debian-stable/jenkins.io-2026.key
 
@@ -344,9 +353,22 @@ sudo apt install docker.io -y
 sudo usermod -aG docker jenkins
 sudo usermod -aG docker ubuntu
 
+# Fix Docker socket permission
+sudo chmod 666 /var/run/docker.sock
+
+# Install Docker Compose
+sudo apt install docker-compose-v2 -y
+
+# Create symlink so docker-compose command works in Jenkins
+sudo ln -s /usr/libexec/docker/cli-plugins/docker-compose /usr/local/bin/docker-compose
+
+# Verify
+docker-compose --version
+
 # Start Jenkins
 sudo systemctl start jenkins
 sudo systemctl enable jenkins
+sudo systemctl status jenkins
 ```
 
 ### Access Jenkins
@@ -376,12 +398,14 @@ sudo cat /var/lib/jenkins/secrets/initialAdminPassword
 | GitHub Integration | Connect GitHub webhook |
 | Pipeline Stage View | Visualize pipeline stages |
 
-### Jenkins Credentials
+### Jenkins Credentials to Add
 
 | ID | Kind | Purpose |
 |----|------|---------|
 | `dockerhub-creds` | Username & Password | Docker Hub login |
 | `ec2-ssh-key` | SSH Username with Private Key | SSH into NoteVault EC2 |
+
+> For `ec2-ssh-key` — paste the contents of your **NoteVault server PEM file** (not Jenkins server PEM)
 
 ---
 
@@ -418,8 +442,8 @@ pipeline {
                 echo '📦 Pushing to Docker Hub...'
                 sh '''
                     echo $DOCKERHUB_CREDS_PSW | docker login -u $DOCKERHUB_CREDS_USR --password-stdin
-                    docker tag dockerized-notevault-app-backend:latest kattolisuresh/notevault-backend:latest
-                    docker tag dockerized-notevault-app-frontend:latest kattolisuresh/notevault-frontend:latest
+                    docker tag notevault-pipeline-backend:latest kattolisuresh/notevault-backend:latest
+                    docker tag notevault-pipeline-frontend:latest kattolisuresh/notevault-frontend:latest
                     docker push kattolisuresh/notevault-backend:latest
                     docker push kattolisuresh/notevault-frontend:latest
                 '''
@@ -440,7 +464,7 @@ pipeline {
                         cd Dockerized-NoteVault-app &&
                         git checkout main &&
                         git pull origin main &&
-                        docker-compose down &&
+                        docker rm -f nodevault_db nodevault_backend nodevault_frontend nodevault_nginx || true &&
                         docker-compose pull &&
                         docker-compose up -d
                     "
@@ -448,6 +472,7 @@ pipeline {
                 }
             }
         }
+
     }
 
     post {
@@ -489,10 +514,13 @@ Auto-triggers Jenkins on every `git push`:
 | `port 80 already in use` | Stop IIS/Apache |
 | Notes not loading on EC2 | Check `app.js` API URL points to EC2 public IP |
 | Jenkins node offline | Lower disk threshold in Manage Jenkins → System |
-| `docker compose` not found | Use `docker-compose` (with hyphen) in Jenkinsfile |
+| `docker-compose not found` in Jenkins | Run `sudo ln -s /usr/libexec/docker/cli-plugins/docker-compose /usr/local/bin/docker-compose` |
+| `permission denied` Docker socket | Run `sudo chmod 666 /var/run/docker.sock` on Jenkins EC2 |
 | Jenkins can't push to Docker Hub | Check `dockerhub-creds` ID matches Jenkinsfile |
-| SSH deploy failing | Make sure NoteVault EC2 PEM is added as `ec2-ssh-key` |
+| SSH deploy failing | Make sure NoteVault EC2 PEM is added as `ec2-ssh-key` in Jenkins |
+| Container name conflict | Run `docker rm -f nodevault_db nodevault_backend nodevault_frontend nodevault_nginx` |
 | Container exits immediately | Run `docker-compose logs backend` to debug |
+| Jenkins node waiting for executor | Go to Manage Jenkins → Nodes → Built-In Node → Set executors to 2 |
 
 ---
 
