@@ -35,30 +35,22 @@ stage('Push to Docker Hub') {
         '''
     }
 }}
-        stage('Deploy to EC2') {
-            steps {
-                echo '🚀 Deploying to AWS EC2...'
-                sshagent(['ec2-ssh-key']) {
-                    sh '''
-                    ssh -o StrictHostKeyChecking=no ubuntu@${EC2_IP} "
-                        mkdir -p ~/apps &&
-                        cd ~/apps &&
-                        if [ ! -d Dockerized-NoteVault-app ]; then
-                            git clone https://github.com/sureshkattolis-source/notepad-docker-jenkins.git Dockerized-NoteVault-app
-                        fi &&
-                        cd Dockerized-NoteVault-app &&
-                        git checkout main &&
-                        git pull origin main &&
-                        docker-compose down &&
-                        docker-compose pull &&
-                        docker-compose up -d
-                    "
-                    '''
-                }
-            }
+   stage('Deploy to EC2') {
+    steps {
+        echo '🚀 Deploying to AWS EC2...'
+        sshagent(['ec2-ssh-key']) {
+            sh '''
+            ssh -o StrictHostKeyChecking=no ubuntu@${EC2_IP} "
+                cd ~/apps/Dockerized-NoteVault-app &&
+                git pull origin main &&
+                docker rm -f nodevault_db nodevault_backend nodevault_frontend nodevault_nginx || true &&
+                docker-compose pull &&
+                docker-compose up -d
+            "
+            '''
         }
-
     }
+}
 
     post {
         success {
