@@ -1,6 +1,6 @@
 /* ─── NoteVault – Frontend App Logic ──────────────────────── */
 
-const API = "http://localhost/api";  // ← Backend URL
+const API = "/api";  // ← Backend URL
 
 let allNotes       = [];
 let currentFilter  = "all";

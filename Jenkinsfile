@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         DOCKERHUB_CREDS = credentials('dockerhub-creds')
-        EC2_IP = '54.88.106.143'
+        EC2_IP = '3.86.46.15'
     }
 
     stages {
