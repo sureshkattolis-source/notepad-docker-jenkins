@@ -1,5 +1,4 @@
 services:
-
   mysql:
     image: mysql:8.0
     container_name: nodevault_db
@@ -17,7 +16,7 @@ services:
       retries: 5
 
   backend:
-    image: kattolisuresh/nodevault-backend:latest   # ← from Docker Hub
+    build: ./backend        # ← build from Dockerfile
     container_name: nodevault_backend
     environment:
       DB_HOST: mysql
@@ -31,7 +30,7 @@ services:
         condition: service_healthy
 
   frontend:
-    image: kattolisuresh/nodevault-frontend:latest  # ← from Docker Hub
+    build: ./frontend       # ← build from Dockerfile
     container_name: nodevault_frontend
     expose:
       - "80"
